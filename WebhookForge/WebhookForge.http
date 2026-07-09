@@ -1,0 +1,6 @@
+@WebhookForge_HostAddress = http://localhost:5178
+
+GET {{WebhookForge_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
