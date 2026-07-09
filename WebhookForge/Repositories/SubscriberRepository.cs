@@ -49,7 +49,7 @@ namespace WebhookForge.Repositories
             return MapReaderToSubscriber(reader);
         }
 
-        public async Task<Subscriber?> GetAllAsync(string id)
+        public async Task<IReadOnlyList<Subscriber>> GetAllAsync()
         {
             using var connection = _factory.CreateConnection();
             await connection.OpenAsync();

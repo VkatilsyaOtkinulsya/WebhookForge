@@ -11,7 +11,7 @@ namespace WebhookForge.Repositories
             _factory = factory;
         }
 
-        public async Task CreateAsync(Event subscriber)
+        public async Task CreateAsync(Subscriber subscriber)
         {
             using var connection = _factory.CreateConnection();
             await connection.OpenAsync();
@@ -46,7 +46,7 @@ namespace WebhookForge.Repositories
             return MapReaderToSubscriber(reader);
         }
 
-        public async Task<Subscriber?> GetAllAsync(string id)
+        public async Task<IReadOnlyList<Event>> GetAllAsync(string id)
         {
             using var connection = _factory.CreateConnection();
             await connection.OpenAsync();
@@ -55,11 +55,11 @@ namespace WebhookForge.Repositories
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT id, Url, EncryptedSecret, createdAt FROM Subscribers";
 
-            var result = new List<Subscriber>();
+            var result = new List<Event>();
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                result.Add(MapReaderToSubscriber(reader));
+                result.Add(MapReaderToEvent(reader));
             }
 
             return result;
@@ -94,14 +94,18 @@ namespace WebhookForge.Repositories
             return rowsAffected > 0;
         }
 
-        private static Subscriber MapReaderToSubscriber(SqliteDataReader reader)
+        private static Event MapReaderToEvent(SqliteDataReader reader)
         {
-            return new Subscriber
+            return new Event
             {
-                Id = reader.GetString(0),
-                Url = reader.GetString(1),
-                EncryptedSecret = reader.GetString(2),
-                CreatedAt = DateTime.Parse(reader.GetString(3), null, System.Globalization.DateTimeStyles.RoundtripKind)
+                Id = reader.GetString(reader.GetOrdinal("Id")),
+                Object = reader.GetString(reader.GetOrdinal("Object")),
+                Action = reader.GetString(reader.GetOrdinal("Action")),
+                Payload = reader.GetString(reader.GetOrdinal("Payload")),
+                CreatedAt = DateTime.Parse(
+            reader.GetString(reader.GetOrdinal("CreatedAt")),
+            null,
+            System.Globalization.DateTimeStyles.RoundtripKind)
             };
         }
     }
